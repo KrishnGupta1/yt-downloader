@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: yt-downloader-api
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+      pip install yt-dlp
+    startCommand: |
+      apt-get update -qq && apt-get install -y -qq ffmpeg
+      mkdir -p /var/data/downloads
+      gunicorn app:app --bind 0.0.0.0:5000 --workers 2
+    plan: free
