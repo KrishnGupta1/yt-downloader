@@ -7,7 +7,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-DOWNLOAD_DIR = '/var/data/downloads'
+# 🔥 FIX: /var/data की जगह app के साथ downloads folder use करें
+DOWNLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'downloads')
 if not os.path.exists(DOWNLOAD_DIR):
     os.makedirs(DOWNLOAD_DIR)
 
@@ -105,7 +106,6 @@ def download_video():
     template = os.path.join(DOWNLOAD_DIR, '%(title)s.%(ext)s')
     
     try:
-        # yt-dlp खुद ही merge कर देता है - ffmpeg की जरूरत नहीं
         result = subprocess.run(
             ['yt-dlp', '-f', format_id, 
              '--merge-output-format', 'mp4',
@@ -116,7 +116,6 @@ def download_video():
         )
         
         if result.returncode != 0:
-            # बिना merge ke try करें
             result = subprocess.run(
                 ['yt-dlp', '-f', format_id, 
                  '-o', template,
@@ -128,7 +127,6 @@ def download_video():
         if result.returncode != 0:
             return jsonify({'error': f'❌ Download failed: {result.stderr[:200]}'}), 500
         
-        # Find latest file
         files = sorted(
             [f for f in os.listdir(DOWNLOAD_DIR) 
              if os.path.isfile(os.path.join(DOWNLOAD_DIR, f))],
